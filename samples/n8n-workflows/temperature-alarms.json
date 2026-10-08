@@ -1,0 +1,182 @@
+{
+  "name": "Temperature alarm notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -928,
+        -32
+      ],
+      "id": "dbe0952a-d355-48d6-84c3-e3addfac5eb5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telemetry.evaluate_alarms() AS created;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        -720,
+        -32
+      ],
+      "id": "ab07c232-e858-4401-8032-51fd77c3aef3",
+      "name": "Execute a SQL query"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, message FROM telemetry.notification_outbox WHERE sent_at IS NULL ORDER BY id LIMIT 20;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        -544,
+        -32
+      ],
+      "id": "78d818b1-7076-4d6c-80b6-7605c7141814",
+      "name": "Get outbox"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE telemetry.notification_outbox SET sent_at = now() WHERE id = $1;",
+        "options": {
+          "queryReplacement": "={{ $('Get outbox').item.json.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        96,
+        -32
+      ],
+      "id": "12f3b2f5-26ab-4b3d-9534-203e6b71b8ea",
+      "name": "Execute a SQL query1"
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        -64
+      ],
+      "id": "8efdd046-ce63-4cb4-9314-c145019c3987",
+      "name": "Send to owner",
+      "webhookId": "0c97ced7-225e-4df0-b3fc-0fb715a643c5"
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_SECOND_RECIPIENT_CHAT_ID",
+        "text": "={{ $('Get outbox').item.json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        -32
+      ],
+      "id": "d37fc8e3-021d-4fce-9052-4643ea670403",
+      "name": "Send to second recipient",
+      "webhookId": "26e00c77-f469-44a8-b7be-5c6258b130bb",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Get outbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get outbox": {
+      "main": [
+        [
+          {
+            "node": "Send to owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to owner": {
+      "main": [
+        [
+          {
+            "node": "Send to second recipient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to second recipient": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "b85cb59a-ffcc-40b1-8bcd-5806e92f18ed",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "2a416b2b-2f3b-4c92-8a52-643a905181c6",
+  "tags": []
+}

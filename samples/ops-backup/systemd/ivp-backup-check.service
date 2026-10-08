@@ -1,0 +1,8 @@
+[Unit]
+Description=Check age of the last complete IVP backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ivp-backup-check.sh
+User=root
+Group=root

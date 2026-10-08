@@ -1,0 +1,27 @@
+# Install as /etc/ivp-backup/backup.conf (root:root, 0600).
+# No passwords or private keys belong in this file.
+EXPECTED_HDD_UUID=<uuid-from-lsblk>
+HDD_MOUNT=/srv/video
+SSD_DIR=/var/backups/ivp
+HDD_DIR=/srv/video/backup/ivp
+OUTBOX_DIR=/var/backups/ivp-outbox
+PULL_GROUP=sample-backup-read
+SOURCE_ROOT=/opt/ivp
+TELEMETRY_DIR=/srv/telemetry
+RECOVERY_DOCS=/opt/ivp/recovery-docs
+AGE_RECIPIENTS=/etc/ivp-backup/age-recipients.txt
+ENV_FILE=/opt/ivp/.env
+ROUTER_KEY=/root/.ssh/ivp_router_backup
+ROUTER_USER=sample-backup
+ROUTER_A_HOST=<router-a-address>
+ROUTER_B_HOST=<router-b-address>
+# RouterOS 7 hides secrets by default; RouterOS 6 needs hide-sensitive.
+ROUTER_A_EXPORT_CMD='/export terse'
+ROUTER_B_EXPORT_CMD='/export terse hide-sensitive'
+# Leave empty until a restricted off-site receiver is provisioned.
+OFFSITE_HOST=
+OFFSITE_USER=
+OFFSITE_PATH=
+OFFSITE_KEY=/root/.ssh/ivp_offsite
+OFFSITE_DAILY_MAX_MB=200
+MIN_FREE_MB=1024

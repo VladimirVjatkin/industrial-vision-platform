@@ -1,0 +1,8 @@
+[Unit]
+Description=Telemetry daily report files
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ivp/telemetry-files/telemetry-files.sh daily

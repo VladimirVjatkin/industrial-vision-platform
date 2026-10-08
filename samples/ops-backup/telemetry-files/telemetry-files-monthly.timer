@@ -1,0 +1,9 @@
+[Unit]
+Description=Telemetry monthly archive on the 1st at 08:30 Prague time
+
+[Timer]
+OnCalendar=*-*-01 08:30:00 Europe/Prague
+Persistent=true
+
+[Install]
+WantedBy=timers.target

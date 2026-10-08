@@ -1,0 +1,9 @@
+[Unit]
+Description=Telemetry daily report files at 08:05 Prague time
+
+[Timer]
+OnCalendar=*-*-* 08:05:00 Europe/Prague
+Persistent=true
+
+[Install]
+WantedBy=timers.target

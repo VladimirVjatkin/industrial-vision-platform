@@ -1,0 +1,20 @@
+%% Segmentation as allowed flows (everything else: default deny)
+flowchart TB
+    Internet((Internet))
+    VPN[Off-site VPN hub]
+    R{{Router / firewall}}
+    MGMT[MGMT<br/>router & AP management]
+    SRV[SERVER<br/>edge server]
+    CAM[CAMERA<br/>cameras, PoE switch]
+    OFF[OFFICE<br/>workstations, Wi-Fi]
+    IOT[IoT<br/>sensor nodes, isolated Wi-Fi]
+    R --- MGMT & SRV & CAM & OFF & IOT
+    SRV -->|RTSP| CAM
+    IOT -->|MQTT port only| SRV
+    OFF -->|admin workstation only| SRV
+    SRV -->|updates, notifications| Internet
+    OFF --> Internet
+    R -->|outbound WireGuard| VPN
+    VPN -->|owner devices only: management + server SSH| R
+    CAM -. blocked .-> Internet
+    IOT -. blocked .-> Internet

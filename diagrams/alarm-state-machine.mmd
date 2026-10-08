@@ -1,0 +1,9 @@
+%% Per-channel alarm states (evaluated every 5 minutes)
+stateDiagram-v2
+    [*] --> NORMAL
+    NORMAL --> PENDING: latest value outside range
+    PENDING --> NORMAL: back inside range (reset)
+    PENDING --> ALARM: outside range for 20 min, no data gaps / notify
+    ALARM --> ALARM: every 60 min / reminder
+    ALARM --> NORMAL: 10 min inside range with 1 °C margin / notify
+    ALARM --> NORMAL: alarm disabled for the channel (silent)

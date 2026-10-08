@@ -1,0 +1,10 @@
+[Unit]
+Description=Check IVP backup age daily at noon
+
+[Timer]
+OnCalendar=*-*-* 12:00:00 Europe/Prague
+Persistent=true
+Unit=ivp-backup-check.service
+
+[Install]
+WantedBy=timers.target

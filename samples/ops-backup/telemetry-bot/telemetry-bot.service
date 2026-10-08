@@ -1,0 +1,12 @@
+[Unit]
+Description=Telegram bot commands for telemetry (/status)
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+ExecStart=/opt/ivp/telemetry-bot/telemetry-bot.sh
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

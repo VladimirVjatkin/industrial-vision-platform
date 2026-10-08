@@ -1,0 +1,9 @@
+[Unit]
+Description=Telemetry monthly archive to Telegram
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ivp/telemetry-files/telemetry-files.sh monthly

@@ -1,0 +1,59 @@
+# Conservative public-repository ignore rules.
+# This repository must never contain secrets, real configuration, recordings,
+# snapshots, faces, database dumps or device identifiers.
+
+## Secrets / credentials / keys
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.key
+*.pem
+*.age
+*.pub
+*credentials*
+*secret*
+*token*
+id_rsa*
+id_ed25519*
+
+## Media and recognition data (never published)
+*.mp4
+*.mkv
+*.webp
+*.jpg
+*.jpeg
+*.heic
+# Exception: reviewed UI screenshots (no camera frames, people, IDs or addresses)
+!/screenshots/*.jpg
+recordings/
+clips/
+faces/
+exports/
+model_cache/
+*.onnx
+*.engine
+
+## Databases and backups
+*.dump
+*.sql.gz
+*.db
+*.db-*
+*.tar.zst
+*.zip
+*.rsc
+*.backup
+
+## Build / runtime output
+build/
+node_modules/
+.venv/
+__pycache__/
+*.log
+
+## OS / editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/

@@ -1,0 +1,104 @@
+{
+  "name": "Watchdog heartbeat",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c215682b-66c7-408a-9bab-dbdd4238d397",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT 'sample-site' AS site,\n       to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS sent_at,\n       (SELECT extract(epoch FROM now() - max(received_at))::int FROM telemetry.measurements) AS last_measurement_age_s,\n       (SELECT coalesce(bool_and(NOT offline), false) FROM telemetry.node_state) AS node_online,\n       (SELECT count(*) FROM telemetry.alarm_state WHERE state = 'ALARM')::int AS open_alarms;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "676b7c6c-a236-47d6-8039-a2ad2660b35d",
+      "name": "Execute a SQL query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://watchdog.example.invalid/webhook/site-heartbeat",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "d742bbce-8d88-437f-ae62-5fd00a3d1452",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0c5135b5-fc9b-4e7e-9618-864a84b24d15",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "eee702e0-1d21-4f72-b647-2cf5e1661c83",
+  "tags": []
+}

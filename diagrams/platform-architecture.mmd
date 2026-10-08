@@ -1,0 +1,21 @@
+%% Platform architecture: three layers on one edge server
+flowchart LR
+    subgraph Edge["Camera & edge-inference layer"]
+        Cams[IP cameras<br/>RTSP main + sub] --> G2R[go2rtc restream]
+        G2R --> Frigate[Frigate<br/>detect · record · faces]
+        Frigate --> GPU[(NVIDIA GPU<br/>YOLOv8n ONNX)]
+        Frigate --> Disk[(Event recordings<br/>video HDD)]
+    end
+    subgraph Telemetry["Sensor & telemetry layer"]
+        ESP[ESP32 node<br/>DS18B20 probes] -->|MQTT, isolated IoT Wi-Fi| MQ[Mosquitto]
+    end
+    subgraph Auto["Automation & orchestration layer"]
+        MQ --> N8N[n8n workflows]
+        Frigate -->|MQTT events| MQ
+        N8N <--> PG[(PostgreSQL<br/>telemetry + alarm engine)]
+        N8N -->|alarms, daily report| TG[Telegram]
+        Bot["/status polling service"] <--> PG
+        Bot <--> TG
+    end
+    N8N -->|heartbeat over VPN| WD[Off-site watchdog]
+    WD -->|site silent > 15 min| TG

@@ -1,0 +1,20 @@
+%% Telemetry ingestion and alarm state machine
+sequenceDiagram
+    participant N as ESP32 node
+    participant B as MQTT broker
+    participant W as n8n
+    participant D as PostgreSQL
+    participant T as Telegram
+    N->>B: measurement (boot_id, seq, value, time quality)
+    B->>W: deliver (QoS 1)
+    W->>D: ingest_measurement(topic, payload)
+    D-->>W: stored / duplicate / rejected
+    W->>B: ack (stored or duplicate)
+    B->>N: ack
+    loop every 5 minutes
+        W->>D: evaluate_alarms()
+        D->>D: NORMAL → PENDING → ALARM (20 min)<br/>recovery: 10 min inside range, 1 °C hysteresis<br/>stale 15 min · node offline 15 min
+        D-->>W: outbox rows
+        W->>T: send message
+        W->>D: mark sent
+    end

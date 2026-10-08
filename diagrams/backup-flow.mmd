@@ -1,0 +1,12 @@
+%% Daily backup, off-site copy and verification
+flowchart LR
+    S[Daily 02:30<br/>pg_dump · SQLite backup · configs · faces · inventory] --> A[(Archive on SSD)]
+    A -->|byte-compared, UUID-guarded| H[(Copy on video HDD)]
+    A --> E[age-encrypt<br/>public key only on server]
+    E --> O[Outbox]
+    O -->|now + hourly retry, send once| R[Off-site receiver<br/>write-only drop box → archive]
+    O -->|on demand| L[Owner laptop]
+    A -->|monthly, manual| U[USB stick + recovery procedures]
+    A -->|weekly| T[Restore test into temporary DBs]
+    C[Daily staleness check<br/>20 / 26 / 48 h] --> TG[Telegram]
+    T --> TG

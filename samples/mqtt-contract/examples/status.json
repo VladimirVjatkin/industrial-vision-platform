@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "node_id": "sensor-node-a",
+  "boot_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "uptime_ms": 3600000,
+  "time_quality": "synced",
+  "wifi_rssi": -61,
+  "sensors_found": 3,
+  "buffer_depth": 0,
+  "buffer_dropped": 0,
+  "firmware_version": "sample-1"
+}

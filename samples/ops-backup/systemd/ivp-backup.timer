@@ -1,0 +1,11 @@
+[Unit]
+Description=IVP daily logical backup at 02:30 Prague time
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Prague
+Persistent=true
+RandomizedDelaySec=0
+Unit=ivp-backup.service
+
+[Install]
+WantedBy=timers.target

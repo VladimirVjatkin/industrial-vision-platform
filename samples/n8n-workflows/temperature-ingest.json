@@ -1,0 +1,239 @@
+{
+  "name": "Temperature ingestion and acknowledgement",
+  "nodes": [
+    {
+      "parameters": {
+        "topics": "ivp/telemetry/v1/nodes/+/sensors/+/measurement,ivp/telemetry/v1/nodes/+/status,ivp/telemetry/v1/nodes/+/availability",
+        "options": {
+          "parallelProcessing": false
+        }
+      },
+      "type": "n8n-nodes-base.mqttTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4870c0e5-46bc-497a-bb72-9929997a3c02",
+      "name": "MQTT Trigger"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.topic }}",
+                    "rightValue": "/measurement",
+                    "operator": {
+                      "type": "string",
+                      "operation": "endsWith"
+                    },
+                    "id": "878fb185-cbe9-4b7f-8d28-b53ef22b5f99"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "measurement"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b4cccaf6-78e3-41bd-a09e-7bb8a36533b5",
+                    "leftValue": "={{ $json.topic }}",
+                    "rightValue": "/measurement",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEndsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "node"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e2265d07-5ef2-4a27-a301-746c4fc2f008",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telemetry.ingest_measurement($1, convert_from(decode($2, 'base64'), 'UTF8')) AS r;",
+        "options": {
+          "queryReplacement": "={{ $json.topic }},{{ $json.message.base64Encode() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "e5a00b40-1588-4f04-af97-71feeb9ca945",
+      "name": "Execute a SQL query"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0dc74f7a-7d9c-451f-921e-be5b27d3a41e",
+              "leftValue": "={{ $json.r.ack_topic }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "13d48a94-bc8c-4f26-bf44-1341df29e85d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "topic": "={{ $json.r.ack_topic }}",
+        "sendInputData": false,
+        "message": "={{ JSON.stringify($json.r.ack_payload) }}",
+        "options": {
+          "qos": 1
+        }
+      },
+      "type": "n8n-nodes-base.mqtt",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -192
+      ],
+      "id": "4aaec161-cc03-484b-8416-7d35b882d208",
+      "name": "MQTT"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telemetry.ingest_node_message($1, convert_from(decode($2, 'base64'), 'UTF8')) AS r;",
+        "options": {
+          "queryReplacement": "={{ $json.topic }},{{ $json.message.base64Encode() }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        96
+      ],
+      "id": "ac6eb1d1-f9a5-4e04-9ca6-b493dd9b06a0",
+      "name": "Execute a SQL query1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "MQTT Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "MQTT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c861166d-6005-45db-9f3a-446999e8045c",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "7b6fe14e-4142-4a75-82b8-0640d2b96adb",
+  "tags": []
+}
